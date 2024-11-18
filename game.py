@@ -6,7 +6,7 @@ class Settings:
     IMAGE_PATH = os.path.join(FILE_PATH, "images")
     Timer = 0 
     FPS = 60
-
+    global_speed = 1 # Global_speed value is a multiplyer that handels every speed variuble so you can make the game twice as fast
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -14,7 +14,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load(os.path.join(Settings.IMAGE_PATH, "TEMP_player.png"))
         self.image = pygame.transform.scale(self.image,(50,50))
         
-
+        self.speed = Settings.global_speed*5  
         self.rect = self.image.get_rect()
         self.rect.topleft = (x,y)
         self.moving = False
@@ -30,29 +30,29 @@ class Player(pygame.sprite.Sprite):
             self.moving = True 
             self.moving_right = True
         if self.moving_right == True:
-            self.rect = self.rect.move(2,0)
-            self.moving_distance +=2
+            self.rect = self.rect.move(self.speed,0)
+            self.moving_distance +=self.speed
                     #Left
         if pygame.key.get_pressed()[pygame.K_LEFT]and self.moving == False and Settings.Window.left != self.rect.left: 
             self.moving = True 
             self.moving_left = True
         if self.moving_left == True:
-            self.rect = self.rect.move(-2,0)
-            self.moving_distance +=2
+            self.rect = self.rect.move(-self.speed,0)
+            self.moving_distance +=self.speed
                     #Up
         if pygame.key.get_pressed()[pygame.K_UP]and self.moving == False and Settings.Window.top != self.rect.top: 
             self.moving = True 
             self.moving_up = True
         if self.moving_up == True:
-            self.rect = self.rect.move(0,-2)
-            self.moving_distance +=2
+            self.rect = self.rect.move(0,-self.speed)
+            self.moving_distance +=self.speed
                     #Down
         if pygame.key.get_pressed()[pygame.K_DOWN]and self.moving == False and Settings.Window.bottom != self.rect.bottom:
             self.moving = True 
             self.moving_down = True
         if self.moving_down == True:
-            self.rect = self.rect.move(0,2)
-            self.moving_distance +=2
+            self.rect = self.rect.move(0,self.speed)
+            self.moving_distance +=self.speed
 
         if self.moving_distance == 50:
             self.rect = self.rect.move(0,0)
