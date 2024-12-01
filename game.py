@@ -8,6 +8,12 @@ class Settings:
     Timer = 0 
     FPS = 60
     global_speed = 1 # Global_speed value is a multiplyer that handels every speed variuble so you can make the game twice as fast
+    win = False
+
+    def tool():
+        print(player.rect.topleft)
+        Settings.win = True
+        print(pygame.key.get_just_pressed()[pygame.K_ESCAPE])
 
 class Car(pygame.sprite.Sprite):
     def __init__(self,x,y,car_speed=1):
@@ -43,12 +49,15 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
         self.state = 0
+        self.state_offset = 15
         self.moving = False
         self.moving_down = False
         self.moving_up = False
         self.moving_right = False
         self.moving_left = False
         self.moving_distance = 0
+        self.dash_check = False
+        self.dash_multeplier = 1
     
     def spawn(self):
         self.rect.center =(225,425)
@@ -61,58 +70,70 @@ class Player(pygame.sprite.Sprite):
         self.moving_up = False
         self.moving_right = False
         self.moving_left = False
+        self.dash_check= False
+        self.dash_multeplier = 1
         self.moving_distance = 0
 
     def update(self):
+                #Speed bost
+        if pygame.key.get_pressed()[pygame.K_SPACE]:
+            self.dash_check = True
+            self.dash_multeplier = 2
                     #Right
-        if pygame.key.get_pressed()[pygame.K_RIGHT]and self.moving == False and Settings.Window.right !=self.rect.right: 
+        if pygame.key.get_pressed()[pygame.K_RIGHT]and self.moving == False and Settings.Window.right !=self.rect.right+self.state_offset: 
             self.moving = True 
             self.moving_right = True
         if self.moving_right == True and self.moving == True:
-            self.rect = self.rect.move(self.speed,0)
-            self.moving_distance +=self.speed
+            self.rect = self.rect.move(self.speed*self.dash_multeplier,0)
+            self.moving_distance +=self.speed*self.dash_multeplier
                     #Left
-        if pygame.key.get_pressed()[pygame.K_LEFT]and self.moving == False and Settings.Window.left != self.rect.left: 
+        if pygame.key.get_pressed()[pygame.K_LEFT]and self.moving == False and Settings.Window.left != self.rect.left-self.state_offset: 
             self.moving = True 
             self.moving_left = True
         if self.moving_left == True and self.moving == True:
-            self.rect = self.rect.move(-self.speed,0)
-            self.moving_distance +=self.speed
+            self.rect = self.rect.move(-self.speed*self.dash_multeplier,0)
+            self.moving_distance +=self.speed*self.dash_multeplier
                     #Up
-        if pygame.key.get_pressed()[pygame.K_UP]and self.moving == False and Settings.Window.top != self.rect.top: 
+        if pygame.key.get_pressed()[pygame.K_UP]and self.moving == False and Settings.Window.top != self.rect.top-self.state_offset: 
             self.moving = True 
             self.moving_up = True
         if self.moving_up == True and self.moving == True:
-            self.rect = self.rect.move(0,-self.speed)
-            self.moving_distance +=self.speed
+            self.rect = self.rect.move(0,-self.speed*self.dash_multeplier)
+            self.moving_distance +=self.speed*self.dash_multeplier
                     #Down
-        if pygame.key.get_pressed()[pygame.K_DOWN]and self.moving == False and Settings.Window.bottom != self.rect.bottom:
+        if pygame.key.get_pressed()[pygame.K_DOWN]and self.moving == False and Settings.Window.bottom != self.rect.bottom+self.state_offset:
             self.moving = True 
             self.moving_down = True
         if self.moving_down == True and self.moving == True:
-            self.rect = self.rect.move(0,self.speed)
-            self.moving_distance +=self.speed
+            self.rect = self.rect.move(0,self.speed*self.dash_multeplier)
+            self.moving_distance +=self.speed*self.dash_multeplier
 
         if self.moving_distance == 50:
             self.nullefie()
 
-            if self.rect.top <=0:
+            if self.rect.top <=self.state_offset:
                 self.state +=1
                 if self.state ==1:
                     self.image = pygame.image.load(os.path.join(Settings.IMAGE_PATH, "TEMP_player.png"))
                     self.image = pygame.transform.scale(self.image,(30,30))
+                    self.rect = self.image.get_rect()
+                    self.state_offset=10
                     self.spawn()
                 elif self.state ==2:
                     self.image = pygame.image.load(os.path.join(Settings.IMAGE_PATH, "TEMP_player.png"))
                     self.image = pygame.transform.scale(self.image,(40,40))
+                    self.rect = self.image.get_rect()
+                    self.state_offset=5
                     self.spawn()
                     
                 elif self.state ==3:
                     self.image = pygame.image.load(os.path.join(Settings.IMAGE_PATH, "TEMP_player.png"))
                     self.image = pygame.transform.scale(self.image,(50,50))
+                    self.rect = self.image.get_rect()
+                    self.state_offset = 0
                     self.spawn()
-            #elif self.state==4:
-            #    Winn
+                elif self.state==4:
+                    Settings.win = True
             
     
 
@@ -148,8 +169,9 @@ def main():
 
     background_image = pygame.image.load(os.path.join(Settings.IMAGE_PATH,"TEMP_Background.png"))
     background_image = pygame.transform.scale(background_image,Settings.Window.size)
-
-    # game schleife
+    transparents = pygame.image.load(os.path.join(Settings.IMAGE_PATH,"transparents.png")).convert_alpha()
+    transparents = pygame.transform.scale(background_image,(450,450))
+    # game loop
     running = True
     while running:
         for event in pygame.event.get():
@@ -158,7 +180,7 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-        player.update() # Player direction up 
+        player.update() 
 
         for car in cars:
             car.update()
@@ -172,10 +194,15 @@ def main():
         for car in cars:
             screen.blit(car.image,car.rect)
         
-        #print(player.rect.topleft)
+        
+        if Settings.win == True:
+            transparents.set_alpha(128)
+            screen.blit(transparents,(0,0))
 
         #Flip of the blits
         pygame.display.flip()
+
+        #Settings.tool()
         #FPS
         Settings.Timer +=1
         if Settings.Timer == 30:
