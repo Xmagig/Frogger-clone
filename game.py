@@ -9,7 +9,8 @@ class Settings:
     FPS = 60
     global_speed = 1 # Global_speed value is a multiplyer that handels every speed variuble so you can make the game twice as fast
     win = False
-
+    font_size = 20
+    points = 0
     def tool():
         print(player.rect.topleft)
         Settings.win = True
@@ -76,6 +77,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
                 #Speed bost
+
         if pygame.key.get_pressed()[pygame.K_SPACE]:
             self.dash_check = True
             self.dash_multeplier = 2
@@ -112,6 +114,7 @@ class Player(pygame.sprite.Sprite):
             self.nullefie()
 
             if self.rect.top <=self.state_offset:
+                Settings.points += 10
                 self.state +=1
                 if self.state ==1:
                     self.image = pygame.image.load(os.path.join(Settings.IMAGE_PATH, "TEMP_player.png"))
@@ -171,6 +174,12 @@ def main():
     background_image = pygame.transform.scale(background_image,Settings.Window.size)
     transparents = pygame.image.load(os.path.join(Settings.IMAGE_PATH,"transparents.png")).convert_alpha()
     transparents = pygame.transform.scale(background_image,(450,450))
+
+    font = pygame.font.Font(pygame.font.get_default_font(),Settings.font_size)
+    text = font.render(str(Settings.points),True,[0,0,0])
+    text_rect = text.get_rect()
+    text_rect.topleft = Settings.Window.topleft
+
     # game loop
     running = True
     while running:
@@ -199,6 +208,8 @@ def main():
             transparents.set_alpha(128)
             screen.blit(transparents,(0,0))
 
+        text = font.render(str(Settings.points),True,[0,0,0])
+        screen.blit(text, text_rect)
         #Flip of the blits
         pygame.display.flip()
 
